@@ -29,6 +29,11 @@ public class CustomerTransactionServiceImpl implements CustomerTransactionServic
 		CustomerTransaction customerTransaction = customerTransactionRepository.findById(customerTransactionId).orElse(null);
 		return customerTransaction;
 	}
+	
+	@Override
+	public List<CustomerTransaction> getCustomerTransactionByCustomerId(long customerId) {
+		return customerTransactionRepository.findBycustomerId(customerId);
+	}
 
 	@Override
 	public CustomerTransaction createCustomerTransaction(CustomerTransaction customerTransaction) {
@@ -47,7 +52,7 @@ public class CustomerTransactionServiceImpl implements CustomerTransactionServic
 	
 	@Override
 	public List<CustomerTransaction> getRewardSummaryByCustomerId(long customerId,LocalDate startDate, LocalDate endDate) {
-		return customerTransactionRepository.findByTransactionDateBetween(startDate,endDate);
+		return customerTransactionRepository.findByCustomerIdAndTransactionDateBetween(customerId,startDate,endDate);
 	}
 
 }

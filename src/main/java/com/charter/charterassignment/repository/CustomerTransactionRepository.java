@@ -11,6 +11,6 @@ import com.charter.charterassignment.entity.CustomerTransaction;
 @Repository
 public interface CustomerTransactionRepository extends JpaRepository<CustomerTransaction, Long>{
 	
-	List<CustomerTransaction> findByTransactionDateBetween(LocalDate startDate, LocalDate endDate);
-
+	List<CustomerTransaction> findByCustomerIdAndTransactionDateBetween(Long customerId,LocalDate startDate, LocalDate endDate);
+	List<CustomerTransaction> findBycustomerId(Long customerId);
 }

@@ -41,6 +41,7 @@ public class CustomerController {
 
 	@GetMapping("/customers")
 	public List<CustomerModel> getAllCustomers() throws ResourceNotFoundException {
+		logger.info("Get All Customer");
 		List<Customer> customerList = customerService.getAllCustomer();
 		List<CustomerModel> customerModelList = new ArrayList<>();
 		if (!customerList.isEmpty()) {
@@ -55,6 +56,7 @@ public class CustomerController {
 	@GetMapping("/customer/{customerId}")
 	public ResponseEntity<CustomerModel> getCustomerById(@PathVariable(value = "customerId") Long customerId)
 			throws ResourceNotFoundException {
+		logger.info("Get Customer : {} ",customerId);
 		Customer customer = customerService.getCustomerById(customerId);
 		if (customer != null) {
 			return ResponseEntity.ok().body(modelMapper.map(customer, CustomerModel.class));
@@ -64,12 +66,14 @@ public class CustomerController {
 
 	@PostMapping("/customer")
 	public ResponseEntity<CustomerModel> createCustomer(@Valid @RequestBody CustomerModel customerModel) {
+		logger.info("Create Customer");
 		try {
 			Customer customer = modelMapper.map(customerModel, Customer.class);
 			customer = customerService.createCustomer(customer);
 			customerModel= modelMapper.map(customer, CustomerModel.class);
 			return new ResponseEntity<CustomerModel>(customerModel, HttpStatus.OK);
 		}catch(Exception e) {
+			logger.error("Create Customer Exception : {} ",e.getMessage());
 			return new ResponseEntity<CustomerModel>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -77,6 +81,7 @@ public class CustomerController {
 	@PutMapping("/customer/{customerId}")
 	public ResponseEntity<CustomerModel> updateCustomer(@PathVariable(value = "customerId") Long customerId,
 			@Valid @RequestBody Customer customerDetails) throws ResourceNotFoundException {
+		logger.info("Update Customer : {}",customerId);
 		try {
 			Customer customer = customerService.getCustomerById(customerId);
 			customer.setEmailId(customerDetails.getEmailId());
@@ -85,6 +90,7 @@ public class CustomerController {
 			final Customer updatedCustomer = customerService.createCustomer(customer);
 			return ResponseEntity.ok().body(modelMapper.map(updatedCustomer, CustomerModel.class));
 		}catch(Exception e) {
+			logger.error("Update Customer Exception : {} {} ",customerId,e.getMessage());
 			return new ResponseEntity<CustomerModel>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -92,6 +98,7 @@ public class CustomerController {
 	@DeleteMapping("/customer/{customerId}")
 	public Map<String, Boolean> deleteCustomer(@PathVariable(value = "customerId") Long customerId)
 			throws ResourceNotFoundException {
+		logger.info("Delete Customer : {}",customerId);
 		Map<String, Boolean> response = new HashMap<>();
 		try {
 			Customer customer = customerService.getCustomerById(customerId);
@@ -102,6 +109,7 @@ public class CustomerController {
 			}
 			throw new ResourceNotFoundException("Customer not found");
 		}catch(Exception e) {
+			logger.error("Delete Customer Exception : {} {} ",customerId,e.getMessage());
 			response.put("deleted", Boolean.FALSE);
 			return response;
 		}

@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +34,16 @@ public class CustomerTransactionController {
 	
     @Autowired
     private CustomerTransactionService customerTransactionService;
+    
+	@Value("${defaultNumberofMonths}")
+	private Long defaultNumberofMonths;
 
     @Autowired
     private ModelMapper modelMapper;
     
     @GetMapping("/customer/transaction")
     public List<CustomerTransactionModel> getAllCustomerTransactions() throws ResourceNotFoundException{
+    	logger.info("get All CustomerTransactions");
 	    List <CustomerTransaction> customerTransasctionList= customerTransactionService.getAllCustomerTransaction();
 	    List < CustomerTransactionModel > customerTransactionModelList = new ArrayList<>();
 	    if (!customerTransasctionList.isEmpty()) {
@@ -51,8 +56,24 @@ public class CustomerTransactionController {
     }
 
     @GetMapping("/customer/{customerId}/transaction")
-    public ResponseEntity<CustomerTransactionModel> getCustomerTransactionById(@PathVariable(value = "customerId") Long customerTransactionId)
+    public List<CustomerTransactionModel> getCustomerTransactionByCustomerId(@PathVariable(value = "customerId") Long customerId)
     throws ResourceNotFoundException {
+    	logger.info("get CustomerTransactions by CustomerId : {} ",customerId);
+        List<CustomerTransaction> customerTransasctionList = customerTransactionService.getCustomerTransactionByCustomerId(customerId);
+        List < CustomerTransactionModel > customerTransactionModelList = new ArrayList<>();
+        if (!customerTransasctionList.isEmpty()) {
+	    	for (CustomerTransaction customerTransaction: customerTransasctionList ) {
+	          customerTransactionModelList.add(modelMapper.map(customerTransaction, CustomerTransactionModel.class));
+	        }
+	    	return customerTransactionModelList;
+	    }
+	    throw new ResourceNotFoundException("Customer Transaction not found");
+    }
+    
+    @GetMapping("/customer/transaction/{customerTransactionId}")
+    public ResponseEntity<CustomerTransactionModel> getCustomerTransactionById(@PathVariable(value = "customerTransactionId") Long customerTransactionId)
+    throws ResourceNotFoundException {
+    	logger.info("get CustomerTransactions by CustomerId : {} ",customerTransactionId);
         CustomerTransaction customerTransaction = customerTransactionService.getCustomerTransactionById(customerTransactionId);
         if(customerTransaction!=null) {
         	return ResponseEntity.ok().body(modelMapper.map(customerTransaction, CustomerTransactionModel.class));
@@ -68,6 +89,7 @@ public class CustomerTransactionController {
 	        customerTransactionModel =  modelMapper.map(customerTransaction, CustomerTransactionModel.class);
 	        return new ResponseEntity<CustomerTransactionModel>(customerTransactionModel, HttpStatus.OK);
 	    }catch(Exception e) {
+	    	logger.error("Create Customer Transaction Exception : {} ",e.getMessage());
 			return new ResponseEntity<CustomerTransactionModel>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }
@@ -75,22 +97,21 @@ public class CustomerTransactionController {
     @GetMapping("/customer/{customerId}/reward")
     public ResponseEntity<CustomerTransactionModel> getCustomerRewardById(@PathVariable(value = "customerId") Long customerTransactionId)
     throws ResourceNotFoundException {
-    	try {
-	        CustomerTransaction customerTransaction = customerTransactionService.getCustomerTransactionById(customerTransactionId);
+	     CustomerTransaction customerTransaction = customerTransactionService.getCustomerTransactionById(customerTransactionId);
 	        if(customerTransaction!=null) {
 	        	return ResponseEntity.ok().body(modelMapper.map(customerTransaction, CustomerTransactionModel.class));
+	        }else {
+	        	throw new ResourceNotFoundException("Customer Transaction not found");
 	        }
-	        throw new ResourceNotFoundException("Customer Transaction not found");
-    	}catch(Exception e) {
-			return new ResponseEntity<CustomerTransactionModel>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
     }
     
-    @GetMapping("/customer/{customerId}/rewardsummary")
-    public ResponseEntity<RewardSummaryModel> getRewardsSummaryByCustomerId(@PathVariable(value = "customerId") Long customerTransactionId)
+    @GetMapping("/customer/{customerId}/rewardsummary/{months}")
+    public ResponseEntity<RewardSummaryModel> getRewardsSummaryByCustomerId(@PathVariable(value = "customerId") Long customerTransactionId,@PathVariable(value = "months") Long numberOfMonths)
     throws ResourceNotFoundException {
-    	try {
-	        List<CustomerTransaction> customerTransactionList = customerTransactionService.getRewardSummaryByCustomerId(customerTransactionId, LocalDate.now().minusMonths(3),LocalDate.now());
+    		if(numberOfMonths==null) {
+    			numberOfMonths=defaultNumberofMonths;
+    		}
+	        List<CustomerTransaction> customerTransactionList = customerTransactionService.getRewardSummaryByCustomerId(customerTransactionId, LocalDate.now().minusMonths(numberOfMonths),LocalDate.now());
 	        List < CustomerTransactionModel > customerTransactionModelList = new ArrayList<>();
 	        Double totalRewardPoints=0d, totalTransactionAmount=0d;
 	        if (!customerTransactionList.isEmpty()) {
@@ -108,9 +129,6 @@ public class CustomerTransactionController {
 	        rewardSummaryModel.setTotalTransactionAmount(totalTransactionAmount);
 	        rewardSummaryModel.setCustomerTransactionModelList(customerTransactionModelList);
 	        return new ResponseEntity<RewardSummaryModel>(rewardSummaryModel, HttpStatus.OK);    	
-		}catch(Exception e) {
-			return new ResponseEntity<RewardSummaryModel>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
     }
 
 }

@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.charter.charterassignment.CharterAssignmentApplication;
 import com.charter.charterassignment.entity.Customer;
+import com.charter.charterassignment.model.CustomerModel;
 
 
 
@@ -41,10 +42,10 @@ public class CustomerControllerTest {
 	@Test
 	public void testGetAllCustomers() {
 		HttpHeaders headers = new HttpHeaders();
-		HttpEntity<String> entity = new HttpEntity<String>(null, headers);
+		HttpEntity<CustomerModel> entity = new HttpEntity<CustomerModel>(null, headers);
 
-		ResponseEntity<String> response = restTemplate.exchange(getRootUrl() + "/customers",
-				HttpMethod.GET, entity, String.class);
+		ResponseEntity<CustomerModel> response = restTemplate.exchange(getRootUrl() + "/customers",
+				HttpMethod.GET, entity, CustomerModel.class);
 		
 		assertNotNull(response.getBody());
 	}

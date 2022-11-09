@@ -7,6 +7,7 @@ import com.charter.charterassignment.entity.CustomerTransaction;
 
 public interface CustomerTransactionService {
 	CustomerTransaction getCustomerTransactionById(long customerTransactionId);
+	List<CustomerTransaction> getCustomerTransactionByCustomerId(long customerId);
 	CustomerTransaction createCustomerTransaction(CustomerTransaction customerTransaction);
 	List<CustomerTransaction> getAllCustomerTransaction();
 	List<CustomerTransaction> getRewardSummaryByCustomerId(long customerId,LocalDate startDate, LocalDate endDate);
